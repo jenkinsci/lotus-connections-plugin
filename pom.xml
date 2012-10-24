@@ -66,4 +66,10 @@
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/lotus-connections-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/lotus-connections-plugin</url>
   </scm>
+<scm>
+    <connection>scm:svn:https://svn.jenkins-ci.org/trunk/hudson/plugins/lotus-connections-plugin</connection>
+    <developerConnection>scm:svn:https://svn.jenkins-ci.org/trunk/hudson/plugins/lotus-connections-plugin</developerConnection>
+    <url>https://svn.jenkins-ci.org/trunk/hudson/plugins/lotus-connections-plugin</url>
+  </scm>
+
 </project>
