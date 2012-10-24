@@ -73,4 +73,11 @@
     <url>https://svn.jenkins-ci.org/trunk/hudson/plugins/lotus-connections-plugin</url>
   </scm>
 -->
+
+<distributionManagement>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+    </repository>
+  </distributionManagement>
 </project>
