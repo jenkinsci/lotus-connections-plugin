@@ -8,7 +8,7 @@
 
   <groupId>com.ibm</groupId>
   <artifactId>LotusConnectionsPlugin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1</version>
   <packaging>hpi</packaging>
 
 <dependencies>
@@ -60,4 +60,10 @@
     </pluginRepository>
   </pluginRepositories>
 
+
+<scm>
+    <connection>scm:git:ssh://github.com/jenkinsci/lotus-connections-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/lotus-connections-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/lotus-connections-plugin</url>
+  </scm>
 </project>
