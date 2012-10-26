@@ -7,7 +7,7 @@
   </parent>
 
   <artifactId>LotusConnectionsPlugin</artifactId>
-  <version>1.9-SNAPSHOT</version>
+  <version>1.9</version>
   <packaging>hpi</packaging>
 
 <dependencies>
