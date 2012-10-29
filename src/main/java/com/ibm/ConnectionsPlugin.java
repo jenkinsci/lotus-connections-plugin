@@ -105,6 +105,8 @@ public class ConnectionsPlugin extends Notifier {
                     passedTests,
                     failedTests,
                     passRate);
+
+	    message += "\nThis mesage was sent from a Jenkins Continuous Integration Server using the Lotus Connections Plugin by Phil Rumble prumble@au1.ibm.com";
         }
         else
         {
