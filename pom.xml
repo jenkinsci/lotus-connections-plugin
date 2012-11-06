@@ -40,34 +40,16 @@
   </dependencies>
 
 <scm>
-    <connection>scm:git://github.com/jenkinsci/lotus-connections-plugin.git</connection>
-    <developerConnection>scm:git://git@github.com/jenkinsci/lotus-connections-plugin.git</developerConnection>
-
+    <connection>scm:git:git://github.com/jenkinsci/lotus-connections-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/lotus-connections-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/lotus-connections-plugin</url>
   </scm>
-<!--
 <distributionManagement>
-   <repository>
-    <id>maven.jenkins-ci.org</id>
-    <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-   </repository>
+    <site>
+      <id>github-project-site</id>
+      <url>gitsite:git@github.com/jenkinsci/lotus-connections-plugin</url>
+    </site>
   </distributionManagement>
-
-
-<repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </repository>
-  </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
--->
 
 <build>
 <plugins>
