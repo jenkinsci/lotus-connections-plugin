@@ -11,6 +11,7 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.AggregatedTestResultAction;
+import jenkins.model.Jenkins;
 
 import java.util.Arrays;
 import java.util.List;
@@ -88,7 +89,10 @@ public class ConnectionsPlugin extends Notifier {
     private String createStatusMessage(AbstractBuild<?, ?> build) {
         String projectName = build.getProject().getName();
         String result = build.getResult().toString();
-        String message = "hello";
+        String message = String.format("%s (%d) : %s ", 
+        		projectName, 
+                build.number,
+                result);
         AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
         if (null != atra)
         {

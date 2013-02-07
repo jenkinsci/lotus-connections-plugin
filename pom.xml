@@ -1,14 +1,56 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.424</version><!-- which version of Jenkins is this plugin built against? -->
-  </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.425</version>
+    </parent>
 
-  <artifactId>LotusConnectionsPlugin</artifactId>
-  <version>1.11-SNAPSHOT</version>
-  <packaging>hpi</packaging>
+    <artifactId>lotus-connections-plugin</artifactId>
+    <version>1.19-SNAPSHOT</version>
+    <name>Lotus Connections Plugin</name>
+    <packaging>hpi</packaging>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/Lotus+Connections+plugin</url>
+  
+  <developers>
+    <developer>
+      <id>philrumble</id>
+      <name>Phil Rumble</name>
+      <email>prumble@au1.ibm.com</email>
+    </developer>
+  </developers>
+  
+  <distributionManagement>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+    </repository>
+  </distributionManagement>
+
+
+
+  <!-- 
+    <repositories>
+        <repository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </repository>
+
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </pluginRepository>
+    </pluginRepositories>-->
+    
+   <scm>
+    <connection>scm:git:ssh://github.com/jenkinsci/lotus-connections-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/lotus-connections-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/lotus-connections-plugin</url>
+  </scm>
+    
 
 <dependencies>
     <dependency>
@@ -32,41 +74,14 @@
         <artifactId>axiom-impl</artifactId>
         <version>1.2.10</version>
       </dependency> 
-<dependency>
-   <groupId>org.apache.geronimo.specs</groupId>
-   <artifactId>geronimo-stax-api_1.0_spec</artifactId>
-   <version>1.0.1</version>
-</dependency>
+      <dependency>
+	<groupId>org.apache.geronimo.specs</groupId>
+	<artifactId>geronimo-stax-api_1.0_spec</artifactId>
+	<version>1.0.1</version>
+      </dependency>
   </dependencies>
 
 
-<scm>
-    <connection>scm:git:git://github.com/jenkinsci/lotus-connections-plugin.git</connection>
-    <developerConnection>scm:git:git://git@github.com/jenkinsci/lotus-connections-plugin.git</developerConnection>
-
-    <url>https://github.com/jenkinsci/lotus-connections-plugin</url>
-  </scm>
-
-<distributionManagement>
-   <repository>
-    <id>maven.jenkins-ci.org</id>
-    <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-   </repository>
-  </distributionManagement>
-
-
-<repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </repository>
-  </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
 </project>
+
+
