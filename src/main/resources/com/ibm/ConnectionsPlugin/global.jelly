@@ -11,10 +11,9 @@
     tags they use. Views are always organized according to its owner class,
     so it should be straightforward to find them.
   -->
-  <!--
   <f:section title="Lotus Connections Notifier">
   <f:entry title="Lotus Connections Url" field="connectionsUrl"
-      description="">
+      description="The url to the Lotus Connections server.">
       <f:textbox/>
     </f:entry>
     <f:entry title="Connections User name" field="username"
@@ -27,5 +26,4 @@
     </f:entry>
     
   </f:section>
-  -->
 </j:jelly>

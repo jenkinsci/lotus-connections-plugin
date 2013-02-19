@@ -5,18 +5,22 @@ import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
+import hudson.model.Hudson;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.AggregatedTestResultAction;
-import jenkins.model.Jenkins;
+
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
 
 import net.sf.json.JSONObject;
 
@@ -27,42 +31,18 @@ import org.kohsuke.stapler.StaplerRequest;
 
 
 /**
- * @author cactusman
- * @author justinedelson
+ * @author philrumble
  */
 public class ConnectionsPlugin extends Notifier {
     private static final List<String> VALUES_REPLACED_WITH_NULL = Arrays.asList("", "(Default)", "(System Default)");
 
     private static final Logger LOGGER = Logger.getLogger(ConnectionsPlugin.class.getName());
 
-    public final String connectionsUrl;
-
-    public final String username;
-
-    public final String password;
-    
     @DataBoundConstructor
-    public ConnectionsPlugin(String connectionsUrl, String username, String password) {
+    public ConnectionsPlugin() {
         LOGGER.info("ConnectionsPlugin");
-        this.connectionsUrl = connectionsUrl;
-        this.username = username;
-        this.password = password;
-        LOGGER.info("ConnectionsPlugin url:" + connectionsUrl);
-        LOGGER.info("ConnectionsPlugin user:" + username );
+    }
 
-    }
-    public String getConnectionsUrl()
-    {
-        return connectionsUrl;
-    }
-    public String getUserName()
-    {
-        return username;
-    }
-    public String getPassword()
-    {
-        return password;
-    }
 
     public BuildStepMonitor getRequiredMonitorService() {
         LOGGER.info("getRequiredMonitorService");
@@ -72,13 +52,11 @@ public class ConnectionsPlugin extends Notifier {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
         LOGGER.info("performing Lotus connections update");
-//        connectionsUrl = ((ConnectionsPlugin.DescriptorImpl)getDescriptor()).getConnectionsUrl();
-//        username = ((ConnectionsPlugin.DescriptorImpl)getDescriptor()).getUserName();
-//        password = ((ConnectionsPlugin.DescriptorImpl)getDescriptor()).getPassword();
+        
         try {
             String newStatus = createStatusMessage(build);
             LOGGER.info("performing Lotus connections update with message " + newStatus);
-            ((DescriptorImpl) getDescriptor()).updateConnections(newStatus, connectionsUrl, username, password);
+            ((DescriptorImpl) getDescriptor()).updateConnections(newStatus);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Unable to update Lotus Connections Status.", e);
         }
@@ -110,8 +88,7 @@ public class ConnectionsPlugin extends Notifier {
                     failedTests,
                     passRate);
 
-	    message += "\nThis mesage was sent from a Jenkins Continuous Integration Server using the Lotus Connections Plugin by Phil Rumble prumble@au1.ibm.com";
-        }
+	    }
         else
         {
             AbstractTestResultAction tra = build.getTestResultAction();
@@ -133,6 +110,20 @@ public class ConnectionsPlugin extends Notifier {
             }
             
         }
+        
+        String rootUrl = Hudson.getInstance().getRootUrl();
+        if (rootUrl != null) {
+            message += " "+rootUrl + build.getUrl();
+        }
+
+        
+        
+        
+        
+                ;
+//        message += "<br>";
+//        message += " This mesage was sent from a Jenkins Continuous Integration Server using the Lotus Connections Plugin by Phil Rumble prumble@au1.ibm.com";
+        
 //            int failedTests = build.getTestResultAction().getFailCount();
         LOGGER.info("message = " + message);
         return message;
@@ -192,33 +183,22 @@ public class ConnectionsPlugin extends Notifier {
 
 
         public DescriptorImpl() {
-//            super(ConnectionsPlugin.class);
-//            LOGGER.info("DescriptorImpl");
+            super(ConnectionsPlugin.class);
+            LOGGER.info("ConnectionsPublisher");
             load();
         }
 
-//        public String getPassword() {
-//            return password;
-//        }
-//
-//        public String getUserName() {
-//            return username;
-//        }
-//
-//        public String getConnectionsUrl() {
-//            return connectionsUrl;
-//        }
-
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+            
 
-//            req.bindParameters(this, "lotusconnections.");
-//            req.bindParameters(this, "lotusconnections.");
-//            hudsonUrl = Mailer.descriptor().getUrl();
-
-//            String username = formData.getString("username");
-//            String password = formData.getString("password");
-//            String connectionsUrl = formData.getString("connectionsUrl");
+            username = formData.getString("username");
+            password = formData.getString("password");
+            connectionsUrl = formData.getString("connectionsUrl");
+            
+            LOGGER.fine("username = " + username);
+            LOGGER.fine("password = " + password);
+            LOGGER.fine("connectionsUrl = " + connectionsUrl);
 
             save();
             return true;
@@ -234,30 +214,36 @@ public class ConnectionsPlugin extends Notifier {
             return true;
         }
 
+        /**
+         * Creates a new instance of {@link ConnectionsPublisher} from a submitted form.
+         */
+        public ConnectionsPlugin newInstance(StaplerRequest req) throws FormException {
+            LOGGER.fine("New instance of ConnectionsPlugin for a job");
+            return new ConnectionsPlugin();
+        }
+        
 //        @Override
 //        public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-////            return req.bindJSON(this.getClass(), formData);
+//            //return req.bindJSON(this.getClass(), formData);
 //            
 //            req.bindParameters(this, "lotusconnections.");
 //            load();
 //            return super.newInstance(req, formData);
-////            save();
-//////            if (formData.has("twitterid")) {
-//////                return req.bindJSON(UserTwitterProperty.class, formData);
-////            return super.newInstance(req, formData);
+//////            save();
+////////            if (formData.has("twitterid")) {
+////////                return req.bindJSON(UserTwitterProperty.class, formData);
+//////            return super.newInstance(req, formData);
 //        }
 
-        public void updateConnections(String message,
-                String url,
-                String user,
-                String passwd) throws Exception {
+        public void updateConnections(String message) throws Exception {
             try
             {
                 LOGGER.info("updateConnections");
                
                 Poster poster = new Poster();
-                LOGGER.info("Connecting to Connections Server --  " + url);
-                poster.postStatus(url, user, passwd, message);
+                LOGGER.info("Connecting to Connections Server --  " + this.connectionsUrl);
+                poster.postStatus(connectionsUrl, username, password, message);
+
                 LOGGER.info("Updated Connection status: " + message);
             }
             catch (Exception e)
@@ -279,14 +265,17 @@ public class ConnectionsPlugin extends Notifier {
         }
      
         public void setConnectionsUrl(String connectionsUrl) {
+            LOGGER.info("setting connectionsUrl to " + connectionsUrl);
             this.connectionsUrl = connectionsUrl;
         }
      
         public String getUserName() {
+            
             return username;
         }
      
         public void setUserName(String username) {
+            LOGGER.info("setting username to " + username);
             this.username = username;
         }
      
@@ -295,6 +284,7 @@ public class ConnectionsPlugin extends Notifier {
         }
      
         public void setPassword(String password) {
+            LOGGER.info("setting password to " + password);
             this.password = password;
         }
     }
