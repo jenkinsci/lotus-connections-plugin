@@ -2,5 +2,5 @@
   This view is used to render the installed plugins page.
 -->
 <div>
-  This plugin will post build status messages to Lotus Connections.
+  This plugin will post build status and or forum messages to Lotus Connections.
 </div>
