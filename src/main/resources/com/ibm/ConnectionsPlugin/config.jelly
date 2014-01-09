@@ -5,5 +5,45 @@
     See global.jelly for a general discussion about jelly script.
   -->
 
+<f:section title="Lotus Connections Notifier" >
+  <f:entry title="Lotus Connections Url" field="connectionsUrl"
+      description="The url to the Lotus Connections server.">
+      <f:textbox/>
+    </f:entry>
+    <f:entry title="Connections User name" field="connectionsUser"
+      description="">
+      <f:textbox/>
+    </f:entry>
+    <f:entry title="Connections Password" field="connectionsPassword"
+      description="">
+      <f:password/>
+    </f:entry>
+    
+     <f:entry title="${%Send message to the User's Status}" name="enablestatus" field="enablestatus">
+        <f:checkbox checked="${instance.enablestatus}"/>
+      </f:entry>
+
+    <f:entry title="${%Send message to the Community Forum}" name="enableforum" field="enableforum">
+        <f:checkbox checked="${instance.enableforum}"/>
+      </f:entry>
+    <f:entry title="Connections Community UUID">
+        <f:textbox field="communityuuid" />
+      </f:entry>
+      <!--
+    <f:block>
+      <table>
+        <f:optionalBlock field="enableForumDynamic" title="${%Send message to the Community Forum}"
+        checked="${instance.communityuuid != null}">
+          <f:entry title="Connections Community UUID">
+            <f:textbox field="communityuuid" />
+          </f:entry>
+        </f:optionalBlock>
+      </table>
+    </f:block>
+    -->
+
+  </f:section>
+
+
 
 </j:jelly>
