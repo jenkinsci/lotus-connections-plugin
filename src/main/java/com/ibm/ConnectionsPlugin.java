@@ -5,7 +5,6 @@ import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -13,20 +12,17 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.AggregatedTestResultAction;
+import hudson.util.FormValidation;
+import hudson.util.Secret;
 
-
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-
-import net.sf.json.JSONObject;
+import javax.servlet.ServletException;
 
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-
+import org.kohsuke.stapler.QueryParameter;
 
 
 
@@ -34,47 +30,191 @@ import org.kohsuke.stapler.StaplerRequest;
  * @author philrumble
  */
 public class ConnectionsPlugin extends Notifier {
-    private static final List<String> VALUES_REPLACED_WITH_NULL = Arrays.asList("", "(Default)", "(System Default)");
 
-    private static final Logger LOGGER = Logger.getLogger(ConnectionsPlugin.class.getName());
-
+    public final String connectionsUrl;
+    public final String connectionsUser;
+    public final String connectionsPassword;
+    public final Boolean enablestatus;
+    public final Boolean enableforum;
+    public final String communityuuid;
+    private final Logger logger = Logger.getLogger("ConnectionsPlugin");
+    
+    
+    
+    // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public ConnectionsPlugin() {
-        LOGGER.info("ConnectionsPlugin");
+    public ConnectionsPlugin(String connectionsUrl,
+            String connectionsUser,
+            String connectionsPassword,
+            Boolean enablestatus,
+            Boolean enableforum,
+            String communityuuid) {
+        logger.info("ConnectionsPlugin");
+        this.connectionsUrl = connectionsUrl;
+        this.connectionsUser = connectionsUser;
+        this.connectionsPassword = connectionsPassword;
+        this.enablestatus = enablestatus;
+        this.enableforum = enableforum;
+        this.communityuuid = communityuuid;
     }
-
 
     public BuildStepMonitor getRequiredMonitorService() {
-        LOGGER.info("getRequiredMonitorService");
+//        LOGGER.info("getRequiredMonitorService");
         return BuildStepMonitor.BUILD;
     }
+    
+//    /**
+//     * We'll use this from the <tt>config.jelly</tt>.
+//     */
+//    public String getConnectionsUrl() {
+//		return connectionsUrl;
+//	}
+//	public String getConnectionsUser() {
+//		return connectionsUser;
+//	}
+//	public String getConnectionsPassword() {
+//		return connectionsPassword;
+//	}
+//	public Boolean getEnableStatus() {
+//		return enablestatus;
+//	}
+//	public Boolean getEnableForum() {
+//        return enableforum;
+//    }
+//
+//	public String getCommunityUuid() {
+//		return communityuuid;
+//	}
 
+
+	/**
+	 * This is where you 'build' the project.
+	 */
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-        LOGGER.info("performing Lotus connections update");
-        
-        try {
-            String newStatus = createStatusMessage(build);
-            LOGGER.info("performing Lotus connections update with message " + newStatus);
-            ((DescriptorImpl) getDescriptor()).updateConnections(newStatus);
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unable to update Lotus Connections Status.", e);
+    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
+    	
+        listener.getLogger().println("Performing Lotus Connections Magic");
+    	final String url = connectionsUrl;
+    	final String user = connectionsUser;
+    	final Secret password = Secret.fromString(connectionsPassword);
+    	
+    	listener.getLogger().println("url = " + url);
+    	listener.getLogger().println("user = " + user);
+    	listener.getLogger().println("password = " + password);
+    	if( ! validatePluginConfiguration(url, user, Secret.toString( password ) ) ) {
+			listener.getLogger().println("Please configure Lotus Connections Plugin");
+			return false;
+		}
+		
+//    	Logger logger = Logger.getLogger("ConnectionsPlugin");
+    	logger.info("url = " + url);
+    	logger.info("user = " + user);
+    	logger.info("password = " + password);
+    	
+    	com.ibm.Poster poster = new com.ibm.Poster();
+    	
+    	try {
+    	    
+
+        	if (communityuuid != null)
+        	{
+        	    String forumTitle = createForumTitle(build);
+                String forumMessage = createForumMessage(build);
+                
+        	    logger.info("Posting to community forum");
+        	    poster.postForumTopic(url,
+                      user,
+                      connectionsPassword,
+                      communityuuid,
+                        forumTitle,
+                        forumMessage);
+        	}
+        	else
+        	{
+        	    logger.info("Not posting to community forum");
+        	}
+        	
+        	if (enablestatus)
+        	{
+        	    logger.info("Posting to user's status");
+        	    String message = createStatusMessage(build);
+        	    poster.postStatus(url, user, connectionsPassword, message);
+        	}
+        	else
+        	{
+                logger.info("Not posting to user's status");
+            }
+    	}
+    	catch (Exception e) {
+            logger.log(Level.SEVERE, "Unable to update Lotus Connections Status.", e);
         }
-        LOGGER.info("performed Lotus connections update");
+        logger.info("performed Lotus connections update");
+        
         return true;
     }
-
-    private String createStatusMessage(AbstractBuild<?, ?> build) {
+    
+    private String createForumTitle(AbstractBuild<?, ?> build) {
         String projectName = build.getProject().getName();
         String result = build.getResult().toString();
-        String message = String.format("%s (%d) : %s ", 
-        		projectName, 
+        String title = String.format("%s (%d) : %s ", 
+                projectName, 
                 build.number,
                 result);
         AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
         if (null != atra)
         {
-            LOGGER.info("There is an aggregated test result");
+            logger.info("There is an aggregated test result");
+            // Tests Executed = 702 Tests Passed = 518 Tests Failed = 184 Pass Rate = 73%
+            int totalTests = build.getAggregatedTestResultAction().getTotalCount();
+            int passedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int failedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int passRate = (passedTests/totalTests) * 100;
+            title = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %d%",
+                    projectName, 
+                    build.number,
+                    totalTests, 
+                    passedTests,
+                    failedTests,
+                    passRate);
+
+        }
+        else
+        {
+            AbstractTestResultAction tra = build.getTestResultAction();
+            if (null != tra)
+            {
+                int totalTests = tra.getTotalCount();
+                int failedTests = tra.getFailCount();
+                int passedTests = totalTests - failedTests - tra.getSkipCount();
+               
+                float in1 = (100*passedTests);
+                float passRate = (in1/totalTests);
+                title = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %.2f %%",
+                        projectName, 
+                        build.number,
+                        totalTests, 
+                        passedTests,
+                        failedTests,
+                        passRate);
+            }
+            
+        }
+        
+        logger.info("title = " + title);
+        return title;
+    }
+
+    private String createForumMessage(AbstractBuild<?, ?> build) {
+        String projectName = build.getProject().getName();
+        String result = build.getResult().toString();
+        String message = String.format("%s (%d) : %s ", 
+                projectName, 
+                build.number,
+                result);
+        AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
+        if (null != atra)
+        {
+            logger.info("There is an aggregated test result");
             // Tests Executed = 702 Tests Passed = 518 Tests Failed = 184 Pass Rate = 73%
             int totalTests = build.getAggregatedTestResultAction().getTotalCount();
             int passedTests = build.getAggregatedTestResultAction().getTotalCount();
@@ -88,7 +228,62 @@ public class ConnectionsPlugin extends Notifier {
                     failedTests,
                     passRate);
 
-	    }
+        }
+        else
+        {
+            AbstractTestResultAction tra = build.getTestResultAction();
+            if (null != tra)
+            {
+                int totalTests = tra.getTotalCount();
+                int failedTests = tra.getFailCount();
+                int passedTests = totalTests - failedTests - tra.getSkipCount();
+               
+                float in1 = (100*passedTests);
+                float passRate = (in1/totalTests);
+                message = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %.2f %%",
+                        projectName, 
+                        build.number,
+                        totalTests, 
+                        passedTests,
+                        failedTests,
+                        passRate);
+            }
+            
+        }
+        
+        String rootUrl = Hudson.getInstance().getRootUrl();
+        if (rootUrl != null) {
+            message += " "+rootUrl + build.getUrl();
+        }
+        logger.info("message = " + message);
+        return message;
+    }
+    
+    private String createStatusMessage(AbstractBuild<?, ?> build) {
+        String projectName = build.getProject().getName();
+        String result = build.getResult().toString();
+        String message = String.format("%s (%d) : %s ", 
+                projectName, 
+                build.number,
+                result);
+        AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
+        if (null != atra)
+        {
+            logger.info("There is an aggregated test result");
+            // Tests Executed = 702 Tests Passed = 518 Tests Failed = 184 Pass Rate = 73%
+            int totalTests = build.getAggregatedTestResultAction().getTotalCount();
+            int passedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int failedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int passRate = (passedTests/totalTests) * 100;
+            message = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %d%",
+                    projectName, 
+                    build.number,
+                    totalTests, 
+                    passedTests,
+                    failedTests,
+                    passRate);
+
+        }
         else
         {
             AbstractTestResultAction tra = build.getTestResultAction();
@@ -116,176 +311,95 @@ public class ConnectionsPlugin extends Notifier {
             message += " "+rootUrl + build.getUrl();
         }
 
-        
-        
-        
-        
-                ;
-//        message += "<br>";
-//        message += " This mesage was sent from a Jenkins Continuous Integration Server using the Lotus Connections Plugin by Phil Rumble prumble@au1.ibm.com";
-        
-//            int failedTests = build.getTestResultAction().getFailCount();
-        LOGGER.info("message = " + message);
+        logger.info("message = " + message);
         return message;
-//        String toblame = "";
-//        try {
-//            if (!build.getResult().equals(Result.SUCCESS)) {
-//                toblame = getUserString(build);
-//            }
-//        } catch (Exception ignore) {
-//        }
-//        String tinyUrl = "";
-//        if (shouldIncludeUrl()) {
-//            String absoluteBuildURL = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
-//            try {
-//                tinyUrl = createTinyUrl(absoluteBuildURL);
-//            } catch (Exception e) {
-//                tinyUrl = "?";
-//            }
-//        }
-//        return String.format("%s%s:%s $%d - %s", toblame, result, projectName, build.number, tinyUrl);
-//        return String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %d%",
-//                projectName, 
-//                build.number,
-//                totalTests, 
-//                passedTests,
-//                failedTests,
-//                passRate);
         
     }
 
+	private boolean validatePluginConfiguration(
+			final String url,
+			final String user, 
+			final String password) {
+		
+		if( url == null || user == null || password == null || 
+			url.isEmpty() || user.isEmpty() || password.isEmpty() ) {
+			return false;
+		}
+		return true;
+	}
+
+    /**
+     * Overridden for better type safety.
+     * If your plugin doesn't really define any property on Descriptor,
+     * you don't have to do this. 
+     */
+    @Override
     public DescriptorImpl getDescriptor() {
-        // see Descriptor javadoc for more about what a descriptor is.
         return (DescriptorImpl)super.getDescriptor();
     }
 
-    
-//  //Save the form data
-//    @Override
-//    public boolean configure(StaplerRequest req, JSONObject formData) {
-//        envs.replaceBy(req.bindParametersToList(ConnectionsDescriptor.class, "env."));
-//        save();
-//        return true;
-//    }
-//
-//    //repopulate the saved form data
-//    @Override
-//    public BuildWrapper newInstance(StaplerRequest req, JSONObject formData)
-//            throws FormException {
-//        return req.bindJSON(EnvSelectorBuildWrapper.class, formData);
-////      return super.newInstance(req, formData);
-//    }
-    
-    
-    @Extension
-    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        private static final Logger LOGGER = Logger.getLogger(DescriptorImpl.class.getName());
+	/**
+     * Descriptor for {@link NexusMetadataBuilder}. Used as a singleton.
+     * The class is marked as public so that it can be accessed from views.
+     *
+     * <p>
+     * See <tt>src/main/resources/hudson/plugins/hello_world/NexusMetadataBuilder/*.jelly</tt>
+     * for the actual HTML fragment for the configuration screen.
+     */
+    @Extension // This indicates to Jenkins that this is an implementation of an extension point.
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher>  {
+       
+//        public DescriptorImpl() {
+//            load();
+//        }
+        
 
 
-        public DescriptorImpl() {
-            super(ConnectionsPlugin.class);
-            LOGGER.info("ConnectionsPublisher");
-            load();
-        }
+        /**
+         * To persist global configuration information,
+         * simply store it in a field and call save().
+         *
+         * <p>
+         * If you don't want fields to be persisted, use <tt>transient</tt>.
+         */
 
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            
+//        /**
+//         * Performs on-the-fly validation of the form field 'connectionsurl'.
+//         *
+//         * @param value
+//         *      This parameter receives the value that the user has typed.
+//         * @return
+//         *      Indicates the outcome of the validation. This is sent to the browser.
+//         */
+//        public FormValidation doCheckconnectionsurl(@QueryParameter String value)
+//                throws IOException, ServletException {
+//            if (value.length() == 0)
+//                return FormValidation.error("Please set a connectionsurl");
+//            if (value.length() < 4)
+//                return FormValidation.warning("Isn't the connectionsurl too short?");
+//            return FormValidation.ok();
+//        }
+//        public FormValidation doCheckValue(@QueryParameter String value)
+//                throws IOException, ServletException {
+//            if (value.length() == 0)
+//                return FormValidation.error("Please set a value");
+//            if (value.length() < 4)
+//                return FormValidation.warning("Isn't the connectionsurl too short?");
+//            return FormValidation.ok();
+//        }
 
-            username = formData.getString("username");
-            password = formData.getString("password");
-            connectionsUrl = formData.getString("connectionsUrl");
-            
-            LOGGER.fine("username = " + username);
-            LOGGER.fine("password = " + password);
-            LOGGER.fine("connectionsUrl = " + connectionsUrl);
-
-            save();
-            return true;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Lotus Connections Notifier";
-        }
-
-        @Override
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+            // Indicates that this builder can be used with all kinds of project types 
             return true;
         }
 
         /**
-         * Creates a new instance of {@link ConnectionsPublisher} from a submitted form.
+         * This human readable name is used in the configuration screen.
          */
-        public ConnectionsPlugin newInstance(StaplerRequest req) throws FormException {
-            LOGGER.fine("New instance of ConnectionsPlugin for a job");
-            return new ConnectionsPlugin();
+        public String getDisplayName() {
+            return "Lotus Connections Notifications";
         }
-        
-//        @Override
-//        public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-//            //return req.bindJSON(this.getClass(), formData);
-//            
-//            req.bindParameters(this, "lotusconnections.");
-//            load();
-//            return super.newInstance(req, formData);
-//////            save();
-////////            if (formData.has("twitterid")) {
-////////                return req.bindJSON(UserTwitterProperty.class, formData);
-//////            return super.newInstance(req, formData);
-//        }
 
-        public void updateConnections(String message) throws Exception {
-            try
-            {
-                LOGGER.info("updateConnections");
-               
-                Poster poster = new Poster();
-                LOGGER.info("Connecting to Connections Server --  " + this.connectionsUrl);
-                poster.postStatus(connectionsUrl, username, password, message);
-
-                LOGGER.info("Updated Connection status: " + message);
-            }
-            catch (Exception e)
-            {
-                LOGGER.info("updateConnections - Exception caught.");
-                throw e;
-            }
-        }
-        
-        public String connectionsUrl;
-
-        public String username;
-
-        public String password;
-        
-        
-        public String getConnectionsUrl() {
-            return connectionsUrl;
-        }
-     
-        public void setConnectionsUrl(String connectionsUrl) {
-            LOGGER.info("setting connectionsUrl to " + connectionsUrl);
-            this.connectionsUrl = connectionsUrl;
-        }
-     
-        public String getUserName() {
-            
-            return username;
-        }
-     
-        public void setUserName(String username) {
-            LOGGER.info("setting username to " + username);
-            this.username = username;
-        }
-     
-        public String getPassword() {
-            return password;
-        }
-     
-        public void setPassword(String password) {
-            LOGGER.info("setting password to " + password);
-            this.password = password;
-        }
     }
 }
+
