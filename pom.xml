@@ -7,7 +7,7 @@
     </parent>
 
     <artifactId>lotus-connections-plugin</artifactId>
-    <version>1.25-SNAPSHOT</version>
+    <version>1.25</version>
     <name>Lotus Connections Plugin</name>
     <packaging>hpi</packaging>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/Lotus+Connections+plugin</url>
