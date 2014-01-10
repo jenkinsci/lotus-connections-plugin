@@ -12,17 +12,12 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.AggregatedTestResultAction;
-import hudson.util.FormValidation;
 import hudson.util.Secret;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
-
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 
 
 
@@ -62,29 +57,7 @@ public class ConnectionsPlugin extends Notifier {
 //        LOGGER.info("getRequiredMonitorService");
         return BuildStepMonitor.BUILD;
     }
-    
-//    /**
-//     * We'll use this from the <tt>config.jelly</tt>.
-//     */
-//    public String getConnectionsUrl() {
-//		return connectionsUrl;
-//	}
-//	public String getConnectionsUser() {
-//		return connectionsUser;
-//	}
-//	public String getConnectionsPassword() {
-//		return connectionsPassword;
-//	}
-//	public Boolean getEnableStatus() {
-//		return enablestatus;
-//	}
-//	public Boolean getEnableForum() {
-//        return enableforum;
-//    }
-//
-//	public String getCommunityUuid() {
-//		return communityuuid;
-//	}
+
 
 
 	/**
@@ -100,7 +73,7 @@ public class ConnectionsPlugin extends Notifier {
     	
     	listener.getLogger().println("url = " + url);
     	listener.getLogger().println("user = " + user);
-    	listener.getLogger().println("password = " + password);
+//    	listener.getLogger().println("password = " + password);
     	if( ! validatePluginConfiguration(url, user, Secret.toString( password ) ) ) {
 			listener.getLogger().println("Please configure Lotus Connections Plugin");
 			return false;
@@ -348,10 +321,6 @@ public class ConnectionsPlugin extends Notifier {
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher>  {
-       
-//        public DescriptorImpl() {
-//            load();
-//        }
         
 
 
@@ -362,31 +331,6 @@ public class ConnectionsPlugin extends Notifier {
          * <p>
          * If you don't want fields to be persisted, use <tt>transient</tt>.
          */
-
-//        /**
-//         * Performs on-the-fly validation of the form field 'connectionsurl'.
-//         *
-//         * @param value
-//         *      This parameter receives the value that the user has typed.
-//         * @return
-//         *      Indicates the outcome of the validation. This is sent to the browser.
-//         */
-//        public FormValidation doCheckconnectionsurl(@QueryParameter String value)
-//                throws IOException, ServletException {
-//            if (value.length() == 0)
-//                return FormValidation.error("Please set a connectionsurl");
-//            if (value.length() < 4)
-//                return FormValidation.warning("Isn't the connectionsurl too short?");
-//            return FormValidation.ok();
-//        }
-//        public FormValidation doCheckValue(@QueryParameter String value)
-//                throws IOException, ServletException {
-//            if (value.length() == 0)
-//                return FormValidation.error("Please set a value");
-//            if (value.length() < 4)
-//                return FormValidation.warning("Isn't the connectionsurl too short?");
-//            return FormValidation.ok();
-//        }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             // Indicates that this builder can be used with all kinds of project types 
