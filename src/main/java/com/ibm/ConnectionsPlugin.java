@@ -133,14 +133,14 @@ public class ConnectionsPlugin extends Notifier {
                 projectName, 
                 build.number,
                 result);
-        AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
+        AggregatedTestResultAction atra = build.getAction(AggregatedTestResultAction.class);
         if (null != atra)
         {
             logger.info("There is an aggregated test result");
             // Tests Executed = 702 Tests Passed = 518 Tests Failed = 184 Pass Rate = 73%
-            int totalTests = build.getAggregatedTestResultAction().getTotalCount();
-            int passedTests = build.getAggregatedTestResultAction().getTotalCount();
-            int failedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int totalTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
+            int passedTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
+            int failedTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
             int passRate = (passedTests/totalTests) * 100;
             title = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %d%",
                     projectName, 
@@ -153,7 +153,7 @@ public class ConnectionsPlugin extends Notifier {
         }
         else
         {
-            AbstractTestResultAction tra = build.getTestResultAction();
+            AbstractTestResultAction tra = build.getAction(AbstractTestResultAction.class);
             if (null != tra)
             {
                 int totalTests = tra.getTotalCount();
@@ -184,14 +184,14 @@ public class ConnectionsPlugin extends Notifier {
                 projectName, 
                 build.number,
                 result);
-        AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
+        AggregatedTestResultAction atra = build.getAction(AggregatedTestResultAction.class);
         if (null != atra)
         {
             logger.info("There is an aggregated test result");
             // Tests Executed = 702 Tests Passed = 518 Tests Failed = 184 Pass Rate = 73%
-            int totalTests = build.getAggregatedTestResultAction().getTotalCount();
-            int passedTests = build.getAggregatedTestResultAction().getTotalCount();
-            int failedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int totalTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
+            int passedTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
+            int failedTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
             int passRate = (passedTests/totalTests) * 100;
             message = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %d%",
                     projectName, 
@@ -204,7 +204,7 @@ public class ConnectionsPlugin extends Notifier {
         }
         else
         {
-            AbstractTestResultAction tra = build.getTestResultAction();
+            AbstractTestResultAction tra = build.getAction(AbstractTestResultAction.class);
             if (null != tra)
             {
                 int totalTests = tra.getTotalCount();
@@ -239,14 +239,14 @@ public class ConnectionsPlugin extends Notifier {
                 projectName, 
                 build.number,
                 result);
-        AggregatedTestResultAction atra = build.getAggregatedTestResultAction();
+        AggregatedTestResultAction atra = build.getAction(AggregatedTestResultAction.class);
         if (null != atra)
         {
             logger.info("There is an aggregated test result");
             // Tests Executed = 702 Tests Passed = 518 Tests Failed = 184 Pass Rate = 73%
-            int totalTests = build.getAggregatedTestResultAction().getTotalCount();
-            int passedTests = build.getAggregatedTestResultAction().getTotalCount();
-            int failedTests = build.getAggregatedTestResultAction().getTotalCount();
+            int totalTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
+            int passedTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
+            int failedTests = build.getAction(AggregatedTestResultAction.class).getTotalCount();
             int passRate = (passedTests/totalTests) * 100;
             message = String.format("%s (%d) : Tests Executed = %d Tests Passed = %d Tests Failed = %d Pass Rate = %d%",
                     projectName, 
@@ -259,7 +259,7 @@ public class ConnectionsPlugin extends Notifier {
         }
         else
         {
-            AbstractTestResultAction tra = build.getTestResultAction();
+            AbstractTestResultAction tra = build.getAction(AbstractTestResultAction.class);
             if (null != tra)
             {
                 int totalTests = tra.getTotalCount();
